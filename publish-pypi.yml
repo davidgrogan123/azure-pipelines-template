@@ -1,5 +1,5 @@
 parameters:
-  external_feed: ""
+  artifact_feed: ""
   pypi_remote: ""
   dependsOn: []
 
@@ -15,14 +15,13 @@ jobs:
       - task: UsePythonVersion@0
         displayName: setup python
         inputs: { versionSpec: "3.8" }
-      - task: TwineAuthenticate@0
+      - task: TwineAuthenticate@1
         inputs:
-          externalFeeds: ${{ parameters.external_feed}}
-      - script: "python -m pip install -U --user --force-reinstall twine pep517"
+          artifactFeed: ${{ parameters.artifact_feed }}
+      - script: "python -m pip install --upgrade build twine"
         displayName: "acquire build tools"
-      - script: 'python -m pep517.build --binary --source --out-dir "$(System.DefaultWorkingDirectory)/w" .'
+      - script: 'python -m build'
         displayName: "build wheel and source distribution"
-      - script:
-          ${{ format('python3.8 -m twine upload -r {0} --config-file $(PYPIRC_PATH)
-          "$(System.DefaultWorkingDirectory)/w/*"', parameters.pypi_remote) }}
-        displayName: "upload sdist and wheel to PyPi"
+      - script: "python -m twine upload -r ${{ parameters.pypi_remote }} --config-file $(PYPIRC_PATH) dist/*.whl"
+        displayName: "upload package to PyPi feed"
+ 
